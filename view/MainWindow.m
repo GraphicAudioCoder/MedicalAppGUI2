@@ -1,30 +1,42 @@
 % /view/MainWindow.m
 
-classdef MainWindow
+% Main UI window
+classdef MainWindow < handle
     properties
-        mainFig
-        patientTable
+        fig
+        controller
+        currentUI
     end
     
     methods
-        function obj = MainWindow()
-            obj.mainFig = uifigure('Name', 'Patient Data', 'Position', [100, 100, 600, 400]);
-            
-            % Tabella per visualizzare i pazienti
-            obj.patientTable = uitable(obj.mainFig, 'Position', [50, 150, 500, 200]);
-            
-            % Pulsanti, slider, altri controlli qui...
+        function obj = MainWindow(controller)
+            obj.controller = controller;
+            obj.createUI();
         end
         
-        function updatePatientList(obj, patients)
-            % Aggiorna la tabella con i dati dei pazienti
-            patientData = cell(length(patients), 3);
-            for i = 1:length(patients)
-                patientData{i, 1} = patients(i).patientID;
-                patientData{i, 2} = patients(i).patientName;
-                patientData{i, 3} = patients(i).medicalHistory;
+        % Creates the main UI window with specific dimensions and position
+        function createUI(obj)
+            NameFontColor;
+
+            screenSize = get(0, 'ScreenSize');            
+            figWidth = 1080;
+            figHeight = 720;
+            figX = (screenSize(3) - figWidth) / 2;
+            figY = (screenSize(4) - figHeight) / 2;
+
+            % Create a fixed-size, non-resizable window
+            obj.fig = uifigure('Position', [figX, figY, figWidth, figHeight], 'Name', APP_NAME, ...
+                               'Color', BACKGROUND_COLOR, 'Resize', 'off');
+            obj.currentUI = MainMenu(obj.fig, obj.controller);
+        end
+        
+        % Displays the main menu by clearing the current UI and loading a new one
+        function showMainMenu(obj)
+            if ~isempty(obj.currentUI)
+                delete(obj.currentUI);
             end
-            obj.patientTable.Data = patientData;
+            
+            obj.currentUI = MainMenu(obj.fig, obj.controller);
         end
     end
 end
