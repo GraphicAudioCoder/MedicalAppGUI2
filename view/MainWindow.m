@@ -16,7 +16,8 @@ classdef MainWindow < handle
         
         % Creates the main UI window with specific dimensions and position
         function createUI(obj)
-            NameFontColor;
+            NamesFonts;
+            theme = ThemeManager('forceDark');
 
             screenSize = get(0, 'ScreenSize');            
             figWidth = 1080;
@@ -26,7 +27,7 @@ classdef MainWindow < handle
 
             % Create a fixed-size, non-resizable window
             obj.fig = uifigure('Position', [figX, figY, figWidth, figHeight], 'Name', APP_NAME, ...
-                               'Color', BACKGROUND_COLOR, 'Resize', 'off');
+                               'Color', theme.BACKGROUND_COLOR, 'Resize', 'off');
             obj.currentUI = MainMenu(obj.fig, obj.controller);
         end
         

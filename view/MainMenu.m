@@ -3,14 +3,17 @@
 % Menu for choosing the mode 
 classdef MainMenu < handle
     properties
+        mainWindow
         controller
         components
     end
 
     methods
         function obj = MainMenu(mainWindow, controller)
-            NameFontColor;
-
+            NamesFonts;
+            theme = ThemeManager();
+            
+            obj.mainWindow = mainWindow;
             obj.controller = controller;
             obj.components = containers.Map();
 
@@ -22,15 +25,31 @@ classdef MainMenu < handle
                 'Text', ['Welcome to ', APP_NAME], ...
                 'FontSize', HEADER_FONT_SIZE, ...
                 'FontName', HEADER_FONT, ...
-                'FontColor', HEADER_COLOR, ...
+                'FontColor', theme.HEADER_COLOR, ...
                 'HorizontalAlignment', 'center');
             obj.components('welcomeLabel') = welcomeLabel;
 
             % Dimensions and positions for buttons
-            buttonHeight = 420;
+            buttonHeight = 80;
             buttonWidth = 250;
             startX = 55;
-            lowerVerticalPosition = figPosition(4) * 0.7;
+            lowerVerticalPosition = 400;
+
+            % Theme Button
+            if strcmp(theme.THEME, 'DARK')
+                themeIconPath = fullfile(fileparts(mfilename('fullpath')), '../assets/icons/sun.png');  
+            else
+                themeIconPath = fullfile(fileparts(mfilename('fullpath')), '../assets/icons/moon.png');
+            end
+            themeButton = uibutton(mainWindow, ...
+                'Position', [figPosition(3)-90, figPosition(4)-50, 30, 30], ...
+                'Text', '', ...
+                'FontSize', HELP_BTN_FONT_SIZE, ...
+                'BackgroundColor', theme.THEME_BTN_COLOR, ...
+                'ButtonPushedFcn', @(btn, event) obj.onThemeButtonPushed(btn), ...
+                'Icon', themeIconPath, ...
+                'IconAlignment', 'right');
+            obj.components('themeButton') = themeButton;
 
             % User button
             leftButtonPosition = [startX, lowerVerticalPosition - buttonHeight, buttonWidth, buttonHeight];
@@ -38,7 +57,8 @@ classdef MainMenu < handle
                 'Position', leftButtonPosition, ...
                 'FontSize', MODE_FONT_SIZE, ...
                 'FontName', MODE_FONT, ...
-                'BackgroundColor', USER_COLOR, ...
+                'BackgroundColor', theme.USER_COLOR, ...
+                'FontColor', theme.FONT_MAIN_MENU_COLOR, ...
                 'Text', {'USER', 'MODE'}, ...
                 'ButtonPushedFcn', @(btn, event)obj.onUserModeButtonPushed(mainWindow));
             obj.components('leftButton') = leftButton;
@@ -49,7 +69,8 @@ classdef MainMenu < handle
                 'Position', centerButtonPosition, ...
                 'FontSize', MODE_FONT_SIZE, ...
                 'FontName', MODE_FONT, ...
-                'BackgroundColor', DEVELOPER_COLOR, ...
+                'BackgroundColor', theme.DEVELOPER_COLOR, ...
+                'FontColor', theme.FONT_MAIN_MENU_COLOR, ...
                 'Text', {'DEVELOPER', 'MODE'});
             obj.components('centerButton') = centerButton; % Store in components map
 
@@ -59,7 +80,8 @@ classdef MainMenu < handle
                 'Position', rightButtonPosition, ...
                 'FontSize', MODE_FONT_SIZE, ...
                 'FontName', MODE_FONT, ...
-                'BackgroundColor', BLOCK_COLOR, ...
+                'BackgroundColor', theme.BLOCK_COLOR, ...
+                'FontColor', theme.FONT_MAIN_MENU_COLOR, ...
                 'Text', {'BLOCK', 'MODE'});
             obj.components('rightButton') = rightButton;
         end
@@ -68,6 +90,33 @@ classdef MainMenu < handle
         function onUserModeButtonPushed(obj, mainWindow)
             UserWindow(mainWindow, obj.controller);
             obj.delete();
+        end
+        
+        % Theme button listener
+        function onThemeButtonPushed(obj, btn)
+            theme = ThemeManager('switch');        
+            currentColors = theme;
+            
+            if strcmp(theme.THEME, 'DARK')
+                themeIconPath = fullfile(fileparts(mfilename('fullpath')), '../assets/icons/sun.png');
+            else
+                themeIconPath = fullfile(fileparts(mfilename('fullpath')), '../assets/icons/moon.png');
+            end
+            btn.Icon = themeIconPath;
+            
+            % Update the colors of various UI components
+            obj.mainWindow.Color =  currentColors.BACKGROUND_COLOR;
+            welcomeLabel = obj.components('welcomeLabel');
+            welcomeLabel.FontColor = currentColors.HEADER_COLOR;
+            leftButton = obj.components('leftButton');
+            leftButton.BackgroundColor = currentColors.USER_COLOR;
+            leftButton.FontColor = currentColors.FONT_MAIN_MENU_COLOR;
+            centerButton = obj.components('centerButton');
+            centerButton.BackgroundColor = currentColors.DEVELOPER_COLOR;
+            centerButton.FontColor = currentColors.FONT_MAIN_MENU_COLOR;
+            rightButton = obj.components('rightButton');
+            rightButton.BackgroundColor = currentColors.BLOCK_COLOR;
+            rightButton.FontColor = currentColors.FONT_MAIN_MENU_COLOR;
         end
 
         % Delete all created components
