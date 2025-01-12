@@ -12,10 +12,12 @@ classdef MainMenu < handle
         function obj = MainMenu(mainWindow, controller)
             NamesFonts;
             theme = ThemeManager();
-            
+
             obj.mainWindow = mainWindow;
             obj.controller = controller;
             obj.components = containers.Map();
+
+            % disp(['Status in MainMenu: ', num2str(obj.controller.status)]);
 
             figPosition = mainWindow.Position;
             
