@@ -11,7 +11,6 @@ classdef MainWindow < handle
     methods
         function obj = MainWindow(controller)
             obj.controller = controller;
-            obj.controller.status = 56;
             % disp(['Status all interno di MainWindow: ', num2str(obj.controller.status)]);
             obj.createUI();
         end
@@ -31,7 +30,6 @@ classdef MainWindow < handle
             % Create a fixed-size, non-resizable window
             obj.fig = uifigure('Position', [figX, figY, figWidth, figHeight], 'Name', APP_NAME, ...
                                'Color', theme.BACKGROUND_COLOR, 'Resize', 'off');
-            % disp(['Status all interno di MainWindow, createUI: ', num2str(obj.controller.status)]);
             obj.currentUI = MainMenu(obj.fig, obj.controller);
         end
         

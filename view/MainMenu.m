@@ -17,8 +17,6 @@ classdef MainMenu < handle
             obj.controller = controller;
             obj.components = containers.Map();
 
-            % disp(['Status in MainMenu: ', num2str(obj.controller.status)]);
-
             figPosition = mainWindow.Position;
             
             % Welcome label
