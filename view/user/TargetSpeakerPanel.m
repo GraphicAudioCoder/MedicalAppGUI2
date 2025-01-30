@@ -3,68 +3,234 @@
 classdef TargetSpeakerPanel < handle
     properties
         mainWindow
-        panel
-        label
-        componentsVisibility
+        components
+        controller
+        scrollableArea
     end
     
     methods
-        function obj = TargetSpeakerPanel(mainWindow)
+        function obj = TargetSpeakerPanel(mainWindow, controller)
+            NamesFonts;
+            theme = ThemeManager();
+
             obj.mainWindow = mainWindow;
-            obj.componentsVisibility = containers.Map();
-           
-            obj.label = uilabel(mainWindow, ...
-                'Text', 'Welcome to the Target Speaker Panel', ...
-                'FontSize', 20, ...
-                'FontWeight', 'bold', ...
+            obj.components = containers.Map();
+            obj.controller = controller;
+
+            selectTargetLabel = uilabel(obj.mainWindow, ...
+                'Text', 'Select the target speaker:', ...
+                'FontSize', 12, ...
+                'FontSize', NEXT_BTN_FONT_SIZE, ...
+                'FontName', MAIN_FONT, ...
+                'FontColor', theme.USER_LABEL_COLOR, ...
                 'HorizontalAlignment', 'center', ...
-                'Position', [150, 200, 840, 50]);
-            
-            % Store initial visibility status of components
-            obj.componentsVisibility('panel') = true;
-            obj.componentsVisibility('label') = true;
+                'FontWeight', 'bold', ...
+                'Position', [475, 600, 400, 30]);
+            obj.components('selectTargetLabel') = selectTargetLabel;  
+
+            % Main Scrollable Panel
+            obj.components('mainPanel') = uipanel('Parent', mainWindow, ...
+                'Position', [USER_PANEL_X_START, 100, 1060 - USER_PANEL_X_START, 480], ...
+                'BackgroundColor', theme.USER_CURRENT_TABS_COLOR, ...
+                'Units', 'pixels'); 
+
+            % Scrollable Area inside the mainPanel
+            obj.scrollableArea = uigridlayout(obj.components('mainPanel'), ...
+                'Scrollable', 'on', ...
+                'BackgroundColor', theme.USER_CURRENT_TABS_COLOR, ...
+                'RowHeight', repmat({400}, 1, 10), ... % Height of 250 pixels for 10 rows
+                'ColumnWidth', {'1x'}); % One expandable column
+
+            % Selected Target Label
+            selectedLabel = uilabel(obj.mainWindow, ...
+                'Text', 'Selected Target: ', ...
+                'Position', [USER_PANEL_X_START + 20, 40, 500, 30], ...
+                'FontSize', NEXT_BTN_FONT_SIZE, ...
+                'FontName', MAIN_FONT, ...
+                'FontColor', theme.USER_LABEL_TABS_COLOR, ...
+                'HorizontalAlignment', 'left', ...
+                'FontWeight', 'bold');
+            obj.components('selectedLabel') = selectedLabel;
         end
         
-        % Hide or show all components
-        function setVisibility(obj, visibility)
-            if visibility
-                % Show all components
-                obj.panel.Visible = 'on';
-                obj.label.Visible = 'on';
-                obj.componentsVisibility('panel') = true;
-                obj.componentsVisibility('label') = true;
-            else
-                % Hide all components
-                obj.panel.Visible = 'off';
-                obj.label.Visible = 'off';
-                obj.componentsVisibility('panel') = false;
-                obj.componentsVisibility('label') = false;
+         % Sets the visibility of all components
+         function setVisibility(obj, visibility)
+            keys = obj.components.keys;
+            for i = 1:length(keys)
+                componentName = keys{i};
+                if isvalid(obj.components(componentName))
+                    component = obj.components(componentName);
+                    if visibility
+                        component.Visible = 'on';
+                    else
+                        component.Visible = 'off';
+                    end
+                end
             end
         end
         
-        % Show a specific component
-        function showComponent(obj, componentName)
-            if isKey(obj.componentsVisibility, componentName)
-                switch componentName
-                    case 'panel'
-                        obj.panel.Visible = 'on';
-                    case 'label'
-                        obj.label.Visible = 'on';
-                end
-                obj.componentsVisibility(componentName) = true;
+         % Shows a component
+         function showComponent(obj, componentName)
+            if isKey(obj.components, componentName)
+                component = obj.components(componentName);
+                component.Visible = 'on';
             end
         end
+
+         % Update listeners based on the selected scene
+        function updateTargetSpeaker(obj, currentScene, numListeners)
+            NamesFonts;
+            theme = ThemeManager();
+
+            % Clear existing panels
+            obj.clearPanels();
+
+            % Get listener images
+            targetPath = fullfile(currentScene.scenePath, 'targets');
+            targetFiles = dir(fullfile(targetPath, sprintf('%s_listener_%d_target_*.png', currentScene.sceneFileName, obj.controller.currentScene.listenerNum)));
+            numTargets = numel(targetFiles);
+
+            % Display number of targets
+            disp(['Number of targets: ', num2str(numTargets)]);
+
+            imgOffset = 30;
+            ampY = 300;
+            % Generate new panels based on the number of targets
+            for i = 1:numTargets
+                panelName = sprintf('panel%d', i);
+                panel = uipanel('Parent', obj.scrollableArea, ...
+                    'BackgroundColor', theme.USER_PANEL_COLOR, ...
+                    'FontSize', NEXT_BTN_FONT_SIZE, ...
+                    'FontName', MAIN_FONT, ...
+                    'Units', 'pixels');
+                obj.components(panelName) = panel;
+
+                panel.Layout.Row = i;
+                panel.Layout.Column = 1;
+
+                labelText = sprintf('Target %d', i);
+                imgPath = fullfile(targetPath, targetFiles(i).name);
+
+                % Label for the left side of the panel
+                labelName = sprintf('label%d', i);
+                label = uilabel(panel, ...
+                    'Text', labelText, ...
+                    'FontSize', 12, ...
+                    'FontSize', NEXT_BTN_FONT_SIZE, ...
+                    'FontName', MAIN_FONT, ...
+                    'FontColor', theme.USER_LABEL_COLOR, ...
+                    'HorizontalAlignment', 'left', ...
+                    'FontWeight', 'bold', ...
+                    'Position', [20, 187, 200, 30]);
+                obj.components(labelName) = label;  
+
+                % Image for the center of the panel with offset
+                imgName = sprintf('img%d', i);
+                img = uiimage(panel, ...
+                    'ImageSource', imgPath, ...
+                    'Position', [120 - imgOffset, 10, 490, 380]);
+                obj.components(imgName) = img;  
+
+                % Checkbutton with text for the right side of the panel
+                checkButtonName = sprintf('checkButton%d', i);
+                checkButton = uicheckbox(panel, ...
+                    'Text', ' Amplified', ...
+                    'FontSize', 12, ...
+                    'FontSize', NEXT_BTN_FONT_SIZE, ...
+                    'FontName', MAIN_FONT, ...
+                    'FontColor', theme.USER_LABEL_COLOR, ...
+                    'Position', [550, ampY, 200, 30]);
+                obj.components(checkButtonName) = checkButton;  
+
+                % TextArea for the right side of the panel
+                textAreaName = sprintf('textArea%d', i);
+                textArea = uitextarea(panel, ...
+                    'Value', sprintf('Level: %d dBA', i * 10), ...
+                    'FontSize', SPECS_FONT_SIZE, ...
+                    'FontName', SPECS_FONT, ...
+                    'FontColor', theme.USER_LABEL_COLOR, ...
+                    'BackgroundColor', theme.USER_GUI_ELEM_COLOR_ONE, ...
+                    'Editable', 'off', ...
+                    'Position', [550, ampY - 160, 180, 130]);
+                obj.components(textAreaName) = textArea;
+
+                % Select button for the right side of the panel
+                selectButtonName = sprintf('selectButton%d', i);
+                selectButton = uibutton(panel, ...
+                    'Text', 'Select', ...
+                    'FontName', MAIN_FONT, ...
+                    'BackgroundColor', theme.USER_CURRENT_TABS_COLOR, ...
+                    'FontColor', theme.USER_LABEL_COLOR, ...
+                    'FontSize', SELECT_BTN_FONT_SIZE, ...
+                    'Position', [630, 20, 100, 30], ...
+                    'FontWeight', 'bold', ...
+                    'ButtonPushedFcn', @(btn, event) obj.onSelectTargetButtonPushed(i));
+                obj.components(selectButtonName) = selectButton;
+            end
+        end
+
+        function onSelectTargetButtonPushed(obj, panelIndex)
+            obj.controller.onSelectTargetButtonPushed(panelIndex);
+            selectedLabel = obj.components('selectedLabel');
+            selectedLabel.Text = sprintf('Selected Target: %d', panelIndex);
+        end
         
-        % Hide a specific component
-        function hideComponent(obj, componentName)
-            if isKey(obj.componentsVisibility, componentName)
-                switch componentName
-                    case 'panel'
-                        obj.panel.Visible = 'off';
-                    case 'label'
-                        obj.label.Visible = 'off';
+        % Clear all panels
+        function clearPanels(obj)
+            keys = obj.components.keys;
+            for i = 1:length(keys)
+                componentName = keys{i};
+                if startsWith(componentName, 'panel') || startsWith(componentName, 'img') || startsWith(componentName, 'selectButton')
+                    component = obj.components(componentName);
+                    if isvalid(component)
+                        delete(component);
+                    end
+                    remove(obj.components, componentName);
                 end
-                obj.componentsVisibility(componentName) = false;
+            end
+            selectedLabel = obj.components('selectedLabel');
+            selectedLabel.Text = sprintf('Selected Target:');
+        end
+
+        % Change theme
+        function changeColors(obj, currentColors)
+            mainPanel = obj.components('mainPanel');
+            mainPanel.BackgroundColor = currentColors.USER_CURRENT_TABS_COLOR;
+
+            selectTargetLabel = obj.components('selectTargetLabel');
+            selectTargetLabel.FontColor = currentColors.USER_LABEL_COLOR;
+
+            scrollableArea = mainPanel.Children(1);
+            if isa(scrollableArea, 'matlab.ui.container.GridLayout')
+                scrollableArea.BackgroundColor = currentColors.USER_CURRENT_TABS_COLOR;
+            end
+
+            keys = obj.components.keys;
+            for i = 1:length(keys)
+                componentName = keys{i};
+                component = obj.components(componentName);
+                
+                if isa(component, 'matlab.ui.container.Panel') && ~strcmp(componentName, 'mainPanel')
+                    component.BackgroundColor = currentColors.USER_PANEL_COLOR;
+                end
+
+                if isa(component, 'matlab.ui.control.Label')
+                    component.FontColor = currentColors.USER_LABEL_COLOR;
+                end
+
+                if isa(component, 'matlab.ui.control.TextArea')
+                    component.BackgroundColor = currentColors.USER_GUI_ELEM_COLOR_ONE;
+                    component.FontColor = currentColors.USER_LABEL_COLOR;
+                end
+
+                if isa(component, 'matlab.ui.control.Button')
+                    component.BackgroundColor = currentColors.USER_CURRENT_TABS_COLOR;
+                    component.FontColor = currentColors.USER_LABEL_COLOR;
+                end
+
+                if isa(component, 'matlab.ui.control.CheckBox')
+                    component.FontColor = currentColors.USER_LABEL_COLOR;
+                end
             end
         end
     end

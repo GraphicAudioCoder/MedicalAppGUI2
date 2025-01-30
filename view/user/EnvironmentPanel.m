@@ -44,7 +44,6 @@ classdef EnvironmentPanel < handle
                 panel.Layout.Column = 1;
 
                 labelText = sceneNames{i};
-                disp(['../../scenes/', fileNames{i}, '/', fileNames{i}, '_plan.png']);
                 imgPath = fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileNames{i}, '/', fileNames{i}, '_plan.png']);
 
                 % Label for the left side of the panel
@@ -101,7 +100,7 @@ classdef EnvironmentPanel < handle
                     'FontSize', SELECT_BTN_FONT_SIZE, ...
                     'Position', [630, 20, 100, 30], ...
                     'FontWeight', 'bold', ...
-                    'ButtonPushedFcn', @(src, event) obj.onSelectButtonPushed(i));
+                    'ButtonPushedFcn', @(src, event) obj.onSelectSceneButtonPushed(i));
 
                 % Store the button component
                 obj.components(sprintf('selectButton%d', i)) = selectButton;
@@ -120,15 +119,30 @@ classdef EnvironmentPanel < handle
         end
 
         % Listener callback for the "Select" buttons
-        function onSelectButtonPushed(obj, panelIndex)
+        function onSelectSceneButtonPushed(obj, panelIndex)
+
             selectedLabel = obj.components('selectedLabel');
             [~, sceneNames, ~] = obj.controller.readAllScenes();
 
             if panelIndex <= numel(sceneNames)
                 selectedLabel.Text = ['Selected environment: ', sceneNames{panelIndex}];
+            end    
+            
+            if ~isempty(obj.controller.currentScene)
+                oldScene = obj.controller.currentScene.sceneName;
+            else 
+                oldScene = '';
             end
             
-            obj.controller.onSelectButtonPushed(panelIndex);
+            obj.controller.onSelectSceneButtonPushed(panelIndex);
+            obj.controller.listenerPanel.updateListeners(obj.controller.currentScene);
+            
+            % Reset the selected listener label
+            listenerSelectedLabel = obj.controller.listenerPanel.components('selectedLabel');
+            if ~strcmp(oldScene, obj.controller.currentScene.sceneName)
+                listenerSelectedLabel.Text = 'Selected listener: ';
+                obj.controller.targetSpeakerPanel.clearPanels();
+            end
         end
 
         % Callback for the image button press

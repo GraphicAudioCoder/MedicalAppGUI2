@@ -95,9 +95,16 @@ classdef UserWindow < handle
             obj.patientPanel = PatientPanel(mainWindow, controller);
             obj.environmentPanel = EnvironmentPanel(mainWindow, controller);
             obj.listenerPanel = ListenerPanel(mainWindow, controller);
-            obj.targetSpeakerPanel = TargetSpeakerPanel(mainWindow);
+            obj.targetSpeakerPanel = TargetSpeakerPanel(mainWindow, controller);
             obj.maskingNoisePanel = MaskingNoisePanel(mainWindow);
             obj.testSettingsPanel = TestSettingsPanel(mainWindow);
+
+            obj.controller.patientPanel = obj.patientPanel;
+            obj.controller.environmentPanel = obj.environmentPanel;
+            obj.controller.listenerPanel = obj.listenerPanel;
+            obj.controller.targetSpeakerPanel = obj.targetSpeakerPanel;
+            obj.controller.maskingNoisePanel = obj.maskingNoisePanel;
+            obj.controller.testSettingsPanel = obj.testSettingsPanel;
 
             obj.hideTabPanels();
             obj.patientPanel.setVisibility(true);
@@ -641,6 +648,7 @@ classdef UserWindow < handle
             obj.patientPanel.changeColors(currentColors);
             obj.environmentPanel.changeColors(currentColors);
             obj.listenerPanel.changeColors(currentColors);
+            obj.targetSpeakerPanel.changeColors(currentColors); 
         end
 
         % Helper function to update the color of a tab

@@ -82,7 +82,11 @@ classdef PatientData
         end
 
         % Get today's note and previous notes
-        function [prevHistory, currHistory] = getSplitHistory(obj)
+        function [prevHistory, currHistory] = getSplitHistory(obj, numDashes)
+            if nargin < 2
+                numDashes = 50;
+            end
+            
             prevHistory = '';
             currHistory = '';
             
@@ -90,8 +94,9 @@ classdef PatientData
                 noteDate = dateshift(obj.history(i).date, 'start', 'day');
                 noteText = obj.history(i).text{1};
                 noteDateStr = string(noteDate, 'dd-MM-yyyy');
+                dashes = repmat('-', 1, numDashes);
 
-                prevHistory = sprintf('%s%s:\n"%s"\n', prevHistory, noteDateStr, noteText);
+                prevHistory = sprintf('%s%s %s %s\n%s\n\n', prevHistory, dashes, noteDateStr, dashes, noteText);
             end
         end
     end

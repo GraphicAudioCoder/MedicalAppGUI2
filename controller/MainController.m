@@ -6,6 +6,13 @@ classdef MainController < handle
         mainWindow
         currentPatient
         currentScene
+
+        patientPanel
+        environmentPanel
+        listenerPanel
+        targetSpeakerPanel
+        maskingNoisePanel
+        testSettingsPanel
     end
     
     methods
@@ -115,12 +122,20 @@ classdef MainController < handle
         end
 
         % Listener callback for the "Select" buttons
-        function onSelectButtonPushed(obj, panelIndex)
+        function onSelectSceneButtonPushed(obj, panelIndex)
             [~, sceneNames, fileNames] = obj.readAllScenes();
 
             if panelIndex <= numel(sceneNames)
                 obj.currentScene = SceneData(fileNames{panelIndex}, sceneNames{panelIndex});
             end
+        end
+
+        function onSelectListenerButtonPushed(obj, panelIndex)
+            obj.currentScene = obj.currentScene.setListenerNum(panelIndex);
+        end
+
+        function onSelectTargetButtonPushed(obj, panelIndex)
+            obj.currentScene = obj.currentScene.setSelectedTarget(panelIndex);
         end
         
     end

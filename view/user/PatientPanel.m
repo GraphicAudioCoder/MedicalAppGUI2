@@ -5,6 +5,7 @@ classdef PatientPanel < handle
         mainWindow
         controller
         components
+        errorMessageLabel
     end
     
     methods
@@ -161,12 +162,44 @@ classdef PatientPanel < handle
 
         % Add New Patient listener
         function onAddButtonPushed(obj)
+            NamesFonts;
+            
             nameField = obj.components('nameField');
             surnameField = obj.components('surnameField');
             dobField = obj.components('dobField');
         
             nameValue = strtrim(nameField.Value);
             surnameValue = strtrim(surnameField.Value);
+            
+            if isempty(nameValue) || isempty(surnameValue)
+                if isempty(nameValue) && isempty(surnameValue)
+                    msgText = 'Name and surname are missing';
+                elseif isempty(nameValue)
+                    msgText = 'Name is missing';
+                else
+                    msgText = 'Surname is missing';
+                end
+                
+                msgColor = [0.9, 0, 0];
+                
+                % Delete previous error message if it exists
+                if ~isempty(obj.errorMessageLabel) && isvalid(obj.errorMessageLabel)
+                    delete(obj.errorMessageLabel);
+                end
+                
+                obj.errorMessageLabel = uilabel(obj.mainWindow, ...
+                    'Position', [USER_PANEL_X_START + 175, 40, 400, 30], ...
+                    'Text', msgText, ...
+                    'FontSize', NEXT_BTN_FONT_SIZE, ...
+                    'FontName', MAIN_FONT, ...
+                    'HorizontalAlignment', 'center', ...
+                    'FontColor', msgColor);
+
+                pause(3);
+                delete(obj.errorMessageLabel);
+                return;
+            end
+
             dobValue = datestr(dobField.Value, 'yyyyMMdd');
         
             currFileName = sprintf('%s_%s_%s_%d.mat', ...
@@ -242,7 +275,12 @@ classdef PatientPanel < handle
                 msgColor = [0.9, 0, 0];
             end
 
-            saveMessage = uilabel(obj.mainWindow, ...
+            % Delete previous error message if it exists
+            if ~isempty(obj.errorMessageLabel) && isvalid(obj.errorMessageLabel)
+                delete(obj.errorMessageLabel);
+            end
+
+            obj.errorMessageLabel = uilabel(obj.mainWindow, ...
                 'Position', [520, 40, 280, 30], ...
                 'Text', msgText, ...
                 'FontSize', NEXT_BTN_FONT_SIZE, ...
@@ -251,7 +289,7 @@ classdef PatientPanel < handle
                 'FontColor', msgColor);
 
             pause(3);
-            delete(saveMessage);
+            delete(obj.errorMessageLabel);
         end
         
         % Sets the visibility of all components
