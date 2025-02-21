@@ -28,7 +28,7 @@ classdef UserWindow < handle
         mouseUp
     end
     methods
-        function obj = UserWindow(mainWindow, controller)
+        function obj = UserWindow(mainWindow, controller, selectedLanguage)
             NamesFonts;
             theme = ThemeManager();
 
@@ -63,6 +63,18 @@ classdef UserWindow < handle
                 'BackgroundColor', theme.USER_CURRENT_TABS_COLOR);
             obj.components('userPanel') = userPanel;
 
+            % Add language dropdown to the left of the theme button
+            langDropdown = uidropdown(mainWindow, ...
+                'Position', [figPosition(3)-210, figPosition(4)-50, 110, 30], ...
+                'Items', {'English','Italiano'}, ...
+                'Value', selectedLanguage, ... % Set the selected language
+                'FontSize', HELP_BTN_FONT_SIZE, ...
+                'FontColor', theme.USER_LABEL_COLOR, ...
+                'BackgroundColor', theme.HELP_BTN_COLOR, ...
+                'ValueChangedFcn', @(dd,event)obj.onLanguageChanged(dd));
+            obj.components('languageDropdown') = langDropdown;
+            lang = LanguageManager('setLanguage', langDropdown.Value);
+
             % Theme Button
             if strcmp(theme.THEME, 'DARK')
                 themeIconPath = fullfile(fileparts(mfilename('fullpath')), '../../assets/icons/sun.png');  
@@ -96,7 +108,7 @@ classdef UserWindow < handle
             obj.environmentPanel = EnvironmentPanel(mainWindow, controller);
             obj.listenerPanel = ListenerPanel(mainWindow, controller);
             obj.targetSpeakerPanel = TargetSpeakerPanel(mainWindow, controller);
-            obj.maskingNoisePanel = MaskingNoisePanel(mainWindow);
+            obj.maskingNoisePanel = MaskingNoisePanel(mainWindow, controller);
             obj.testSettingsPanel = TestSettingsPanel(mainWindow);
 
             obj.controller.patientPanel = obj.patientPanel;
@@ -133,10 +145,10 @@ classdef UserWindow < handle
 
             % Test Label
             testLabel = uilabel(mainWindow, ...
-                'Text', 'Test Configuration', ...
-                'Position', [240, figPosition(4)-50, figPosition(3)*0.6, 30], ...
+                'Text', 'TEST CONFIGURATION', ...
+                'Position', [280, figPosition(4)-50, figPosition(3)*0.6, 30], ...
                 'FontSize', MODE_FONT_SIZE, ...
-                'FontName', 'Arial', ...
+                'FontName', MAIN_FONT, ...
                 'FontColor', theme.USER_LABEL_COLOR, ...
                 'HorizontalAlignment', 'left', ...
                 'FontWeight', 'bold');
@@ -158,9 +170,8 @@ classdef UserWindow < handle
             obj.components('verticalPanel') = verticalPanel;
 
             % Vertical Text Label
-            verticalText = sprintf('P\nA\nT\nI\nE\nN\nT');
             verticalLabel = uilabel(verticalPanel, ...
-                'Text', verticalText, ...
+                'Text', '', ... % no preset text
                 'Position', [5, 127, 40, 400], ...
                 'FontSize', TABS_FONT_SIZE, ...
                 'FontName', TAB_FONT, ...
@@ -179,7 +190,7 @@ classdef UserWindow < handle
 
             % Patient Label
             patientLabel = uilabel(mainWindow, ...
-                'Text', 'Patient', ...
+                'Text', lang.PATIENT_LABEL, ...
                 'Position', [20, tabStartY + 10, 180, 30], ...
                 'FontSize', TABS_FONT_SIZE, ...
                 'FontName', TAB_FONT, ...
@@ -196,7 +207,7 @@ classdef UserWindow < handle
 
             % Environment Label
             environmentLabel = uilabel(mainWindow, ...
-                'Text', 'Environment', ...
+                'Text', lang.ENVIRONMENT_LABEL, ...
                 'Position', [20, tabStartY + 10 - tabSize, 180, 30], ...
                 'FontSize', TABS_FONT_SIZE, ...
                 'FontName', TAB_FONT, ...
@@ -213,7 +224,7 @@ classdef UserWindow < handle
 
             % Listener Label
             listenerLabel = uilabel(mainWindow, ...
-                'Text', 'Listener', ...
+                'Text', lang.LISTENER_LABEL, ...
                 'Position', [20, tabStartY + 10 - 2*tabSize, 180, 30], ...
                 'FontSize', TABS_FONT_SIZE, ...
                 'FontName', TAB_FONT, ...
@@ -230,7 +241,7 @@ classdef UserWindow < handle
 
             % Target Speaker Label
             targetSpeakerLabel = uilabel(mainWindow, ...
-                'Text', 'Target Speaker', ...
+                'Text', lang.TARGET_SPEAKER_LABEL, ...
                 'Position', [20, tabStartY + 10 - 3*tabSize, 180, 30], ...
                 'FontSize', TABS_FONT_SIZE, ...
                 'FontName', TAB_FONT, ...
@@ -247,7 +258,7 @@ classdef UserWindow < handle
 
             % Masking Noise Label
             maskingNoiseLabel = uilabel(mainWindow, ...
-                'Text', 'Masking Noise', ...
+                'Text', lang.MASKING_NOISE_LABEL, ...
                 'Position', [20, tabStartY + 10 - 4*tabSize, 180, 30], ...
                 'FontSize', TABS_FONT_SIZE, ...
                 'FontName', TAB_FONT, ...
@@ -264,7 +275,7 @@ classdef UserWindow < handle
 
             % Test Settings Label
             testSettingsLabel = uilabel(mainWindow, ...
-                'Text', 'Test Settings', ...
+                'Text', lang.TEST_SETTINGS_LABEL, ...
                 'Position', [20, tabStartY + 10 - 5*tabSize, 180, 30], ...
                 'FontSize', TABS_FONT_SIZE, ...
                 'FontName', TAB_FONT, ...
@@ -272,6 +283,10 @@ classdef UserWindow < handle
                 'HorizontalAlignment', 'left', ...
                 'FontWeight', 'bold');
             obj.components('testSettingsLabel') = testSettingsLabel;
+
+            % Immediately set and apply the chosen language
+            currentLang = LanguageManager('setLanguage', selectedLanguage);
+            obj.updateLanguageUI(currentLang);
 
             % Mouse Handlers
             obj.mainWindow.WindowButtonMotionFcn = @(src, event)obj.onMouseMove(src, event);
@@ -420,7 +435,7 @@ classdef UserWindow < handle
 
             if obj.onPatientTab && obj.tabPosition ~= 1
                 % testLabel.Text = 'Test Configuration - Patient';
-                verticalLabel.Text  = sprintf('P\nA\nT\nI\nE\nN\nT');
+                verticalLabel.Text = toVerticalString(obj.components('patientLabel').Text);
                 obj.currentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 patientTab = obj.components('patientTab');
                 patientTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -430,7 +445,7 @@ classdef UserWindow < handle
                 obj.patientPanel.setVisibility(true);
             elseif obj.onEnvironmentTab && obj.tabPosition ~= 2
                 % testLabel.Text = 'Test Configuration - Environment';
-                verticalLabel.Text = sprintf('E\nN\nV\nI\nR\nO\nN\nM\nE\nN\nT');
+                verticalLabel.Text = toVerticalString(obj.components('environmentLabel').Text);
                 obj.currentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 environmentTab = obj.components('environmentTab');
                 environmentTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -440,7 +455,7 @@ classdef UserWindow < handle
                 obj.environmentPanel.setVisibility(true);
             elseif obj.onListenerTab && obj.tabPosition ~= 3
                 % testLabel.Text = 'Test Configuration - Listener';
-                verticalLabel.Text = sprintf('L\nI\nS\nT\nE\nN\nE\nR');
+                verticalLabel.Text = toVerticalString(obj.components('listenerLabel').Text);
                 obj.currentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 listenerTab = obj.components('listenerTab');
                 listenerTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -450,7 +465,7 @@ classdef UserWindow < handle
                 obj.listenerPanel.setVisibility(true);
             elseif obj.onTargetSpeakerTab && obj.tabPosition ~= 4
                 % testLabel.Text = 'Test Configuration - Target Speaker';
-                verticalLabel.Text = sprintf('T\nA\nR\nG\nE\nT\n\nS\nP\nE\nA\nK\nE\nR');
+                verticalLabel.Text = toVerticalString(obj.components('targetSpeakerLabel').Text);
                 obj.currentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 targetSpeakerTab = obj.components('targetSpeakerTab');
                 targetSpeakerTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -460,7 +475,7 @@ classdef UserWindow < handle
                 obj.targetSpeakerPanel.setVisibility(true);
             elseif obj.onMaskingNoiseTab && obj.tabPosition ~= 5
                 % testLabel.Text = 'Test Configuration - Masking Noise';
-                verticalLabel.Text = sprintf('M\nA\nS\nK\nI\nN\nG\n\nN\nO\nI\nS\nE');
+                verticalLabel.Text = toVerticalString(obj.components('maskingNoiseLabel').Text);
                 obj.currentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 maskingNoiseTab = obj.components('maskingNoiseTab');
                 maskingNoiseTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -470,7 +485,7 @@ classdef UserWindow < handle
                 obj.maskingNoisePanel.setVisibility(true);
             elseif obj.onTestSettingsTab && obj.tabPosition ~= 6
                 % testLabel.Text = 'Test Configuration - Test Settings';
-                verticalLabel.Text = sprintf('T\nE\nS\nT\n\nS\nE\nT\nT\nI\nN\nG\nS');
+                verticalLabel.Text = toVerticalString(obj.components('testSettingsLabel').Text);
                 obj.currentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 testSettingsTab = obj.components('testSettingsTab');
                 testSettingsTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -500,6 +515,7 @@ classdef UserWindow < handle
         function onNextButtonPushed(obj)
             NamesFonts;
             theme = ThemeManager();
+            lang = LanguageManager();
 
             testLabel = obj.components('testLabel');
             verticalLabel = obj.components('verticalLabel');
@@ -511,6 +527,29 @@ classdef UserWindow < handle
             maskingNoiseTab = obj.components('maskingNoiseTab');
             testSettingsTab = obj.components('testSettingsTab');
             
+            % % Check if a patient is selected
+            % if obj.tabPosition == 1 && isempty(obj.controller.currentPatient)
+            %     return; % Do not proceed if no patient is selected
+            % end
+
+            % Check if the environment is selected
+            selectedEnvironmentLabel = obj.controller.environmentPanel.components('selectedLabel');
+            if obj.tabPosition == 2 && isempty(strtrim(strrep(selectedEnvironmentLabel.Text, lang.SELECTED_ENVIRONMENT_LABEL, '')))
+                return; % Do not proceed if the environment is not selected
+            end
+
+            % Check if the listener is selected
+            selectedListenerLabel = obj.controller.listenerPanel.components('selectedLabel');
+            if obj.tabPosition == 3 && isempty(strtrim(strrep(selectedListenerLabel.Text, lang.SELECTED_LISTENER_LABEL, '')))
+                return; % Do not proceed if the listener is not selected
+            end
+
+            % % Check if the target speaker is selected
+            % selectedTargetLabel = obj.controller.targetSpeakerPanel.components('selectedLabel');
+            % if obj.tabPosition == 4 && isempty(strtrim(strrep(selectedTargetLabel.Text, 'Selected Target: ', '')))
+            %     return; % Do not proceed if the target speaker is not selected
+            % end
+
             if obj.tabPosition == 1
                 patientTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
 
@@ -518,7 +557,7 @@ classdef UserWindow < handle
                 obj.realTabPosition = max(obj.realTabPosition, 2);
                 obj.tabPosition = 2;
                 % testLabel.Text = 'Test Configuration - Environment';
-                verticalLabel.Text = sprintf('E\nN\nV\nI\nR\nO\nN\nM\nE\nN\nT');
+                verticalLabel.Text = toVerticalString(obj.components('environmentLabel').Text);
                 obj.hideTabPanels();
                 obj.environmentPanel.setVisibility(true);
                 environmentTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -530,7 +569,7 @@ classdef UserWindow < handle
                 obj.realTabPosition = max(obj.realTabPosition, 3);
                 obj.tabPosition = 3;
                 % testLabel.Text = 'Test Configuration - Listener';
-                verticalLabel.Text = sprintf('L\nI\nS\nT\nE\nN\nE\nR');
+                verticalLabel.Text = toVerticalString(obj.components('listenerLabel').Text);
                 obj.hideTabPanels();
                 obj.listenerPanel.setVisibility(true);
                 listenerTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -543,7 +582,7 @@ classdef UserWindow < handle
                 obj.realTabPosition = max(obj.realTabPosition, 4);
                 obj.tabPosition = 4;
                 % testLabel.Text = 'Test Configuration - Target Speaker';
-                verticalLabel.Text = sprintf('T\nA\nR\nG\nE\nT\n\nS\nP\nE\nA\nK\nE\nR');
+                verticalLabel.Text = toVerticalString(obj.components('targetSpeakerLabel').Text);
                 obj.hideTabPanels();
                 obj.targetSpeakerPanel.setVisibility(true);
                 targetSpeakerTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -557,7 +596,7 @@ classdef UserWindow < handle
                 obj.realTabPosition = max(obj.realTabPosition, 5);
                 obj.tabPosition = 5;
                 % testLabel.Text = 'Test Configuration - Masking Noise';
-                verticalLabel.Text = sprintf('M\nA\nS\nK\nI\nN\nG\n\nN\nO\nI\nS\nE');
+                verticalLabel.Text = toVerticalString(obj.components('maskingNoiseLabel').Text);
                 obj.hideTabPanels();
                 obj.maskingNoisePanel.setVisibility(true);
                 maskingNoiseTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -572,7 +611,7 @@ classdef UserWindow < handle
                 obj.realTabPosition = max(obj.realTabPosition, 6);
                 obj.tabPosition = 6;
                 % testLabel.Text = 'Test Configuration - Test Settings';
-                verticalLabel.Text = sprintf('T\nE\nS\nT\n\nS\nE\nT\nT\nI\nN\nG\nS');
+                verticalLabel.Text = toVerticalString(obj.components('testSettingsLabel').Text);
                 obj.hideTabPanels();
                 obj.testSettingsPanel.setVisibility(true);
                 testSettingsTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
@@ -624,6 +663,11 @@ classdef UserWindow < handle
             helpButton = obj.components('helpButton');
             helpButton.BackgroundColor = currentColors.HELP_BTN_COLOR;
             
+            % Update language dropdown colors
+            langDropdown = obj.components('languageDropdown');
+            langDropdown.BackgroundColor = currentColors.HELP_BTN_COLOR;
+            langDropdown.FontColor = currentColors.USER_LABEL_COLOR;
+
             % Update the colors of tabs
             updateTabColor(obj, 'patientTab', currentColors.USER_CURRENT_TABS_COLOR);
             updateTabColor(obj, 'environmentTab', currentColors.USER_TABS_COLOR);
@@ -648,7 +692,8 @@ classdef UserWindow < handle
             obj.patientPanel.changeColors(currentColors);
             obj.environmentPanel.changeColors(currentColors);
             obj.listenerPanel.changeColors(currentColors);
-            obj.targetSpeakerPanel.changeColors(currentColors); 
+            obj.targetSpeakerPanel.changeColors(currentColors);
+            obj.maskingNoisePanel.changeColors(currentColors);
         end
 
         % Helper function to update the color of a tab
@@ -700,6 +745,54 @@ classdef UserWindow < handle
                     delete(component);
                 end
             end
+        end
+
+        % Callback for changing the language
+        function onLanguageChanged(obj, dd)
+            currentLang = LanguageManager('setLanguage', dd.Value);
+            obj.updateLanguageUI(currentLang);
+        end
+
+        function updateLanguageUI(obj, lang)
+            nextButton = obj.components('nextButton');
+            nextButton.Text = lang.NEXT_BUTTON_TEXT;
+            helpButton = obj.components('helpButton');
+            helpButton.Tooltip = lang.HELP_BUTTON_TOOLTIP;
+            userModeLabel = obj.components('userModeLabel');
+            userModeLabel.Text = lang.USER_MODE_LABEL;
+            testLabel = obj.components('testLabel');
+            testLabel.Text = lang.TEST_LABEL;
+            patientLabel = obj.components('patientLabel');
+            patientLabel.Text = lang.PATIENT_LABEL;
+            environmentLabel = obj.components('environmentLabel');
+            environmentLabel.Text = lang.ENVIRONMENT_LABEL;
+            listenerLabel = obj.components('listenerLabel');
+            listenerLabel.Text = lang.LISTENER_LABEL;
+            targetSpeakerLabel = obj.components('targetSpeakerLabel');
+            targetSpeakerLabel.Text = lang.TARGET_SPEAKER_LABEL;
+            maskingNoiseLabel = obj.components('maskingNoiseLabel');
+            maskingNoiseLabel.Text = lang.MASKING_NOISE_LABEL;
+            testSettingsLabel = obj.components('testSettingsLabel');
+            testSettingsLabel.Text = lang.TEST_SETTINGS_LABEL;
+
+            verticalLabel = obj.components('verticalLabel');
+            if obj.realTabPosition == 1
+                verticalLabel.Text = toVerticalString(patientLabel.Text);
+            elseif obj.realTabPosition == 2
+                verticalLabel.Text = toVerticalString(environmentLabel.Text);
+            elseif obj.realTabPosition == 3
+                verticalLabel.Text = toVerticalString(listenerLabel.Text);
+            elseif obj.realTabPosition == 4
+                verticalLabel.Text = toVerticalString(targetSpeakerLabel.Text);
+            elseif obj.realTabPosition == 5
+                verticalLabel.Text = toVerticalString(maskingNoiseLabel.Text);
+            elseif obj.realTabPosition == 6
+                verticalLabel.Text = toVerticalString(testSettingsLabel.Text);
+            end
+
+            obj.patientPanel.updateLanguageUI(lang);
+            obj.environmentPanel.updateLanguageUI(lang);
+            obj.listenerPanel.updateLanguageUI(lang);
         end
     end
 end

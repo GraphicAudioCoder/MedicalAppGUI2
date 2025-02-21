@@ -23,19 +23,67 @@ classdef MainController < handle
             disp('Run...');
         end
 
+        % Create a new patient
+        function createNewPatient(obj, name, surname, dob, notes)
+
+            currFileName = sprintf('%s_%s_%s_%d.mat', ...
+                            name, ...
+                            surname, ...
+                            dob, ...
+                            obj.generateUniqueRandom());
+        
+            currFileName = strrep(currFileName, ' ', '');
+        
+            defaultPath = fullfile(pwd, 'patients');
+                   
+            if ~isfolder(defaultPath)
+                defaultPath = pwd;
+            end
+            
+            [fileName, pathName] = uiputfile({'*.mat', 'MATLAB Files (*.mat)'}, ...
+            'New Patient', fullfile(defaultPath, currFileName));
+                   
+            if fileName ~= 0
+                relativePath = fullfile('patients', fileName);
+                obj.createNewPatientFile(relativePath, name, surname, dob, notes);
+            end
+        end
+
         % Create a new patient file (MAT file)
-        function createNewPatientFile(obj, filePath)            
+        function createNewPatientFile(obj, filePath, name, surname, dob, notes)            
             [~, fileName, ~] = fileparts(filePath);
             patientData.filePath = filePath;
             patientData.id = fileName;
             patientData.creationDate = datetime('now');
+            patientData.name = name;
+            patientData.surname = surname;
+            patientData.dateOfBirth = dob;
+            patientData.history = [];
             
+            if ~isempty(strtrim(notes)) && ~all(cellfun('isempty', notes))
+                currentDate = datetime('now', 'Format', 'yyyy-MM-dd');
+                currentDate = dateshift(currentDate, 'start', 'day');
+                newNote.date = currentDate;
+                newNote.text = notes;
+                patientData.currentNotes = newNote;
+            end
+
             try
                 save(filePath, 'patientData');
-                obj.currentPatient = PatientData(filePath, fileName, patientData.creationDate, true);
+                obj.currentPatient = PatientData(filePath, fileName, patientData.creationDate);
             catch
                 disp('Error: Unable to create the .mat file.');
             end
+        end
+
+        % Initialize history with an empty note
+        function history = initializeHistory(obj)
+            currentDate = datetime('now', 'Format', 'yyyy-MM-dd');
+            currentDate = dateshift(currentDate, 'start', 'day');
+
+            newNote.date = currentDate;
+            newNote.text = '';
+            history = newNote;
         end
         
         % Save Patient and Data
@@ -48,7 +96,9 @@ classdef MainController < handle
                     obj.currentPatient.surname = surname;
                     obj.currentPatient.dateOfBirth = dob;
 
-                    if ~isempty(notes)
+                    if ~isempty(strtrim(notes)) && ~all(cellfun('isempty', notes))
+                        obj.currentPatient = obj.currentPatient.updateNotes(notes);
+                    elseif ~isempty(strtrim(obj.currentPatient.currentNotes.text))
                         obj.currentPatient = obj.currentPatient.updateNotes(notes);
                     end
 
@@ -60,11 +110,11 @@ classdef MainController < handle
                     patientData.dateOfBirth = obj.currentPatient.dateOfBirth;
                     patientData.creationDate = obj.currentPatient.creationDate;
                     patientData.history = obj.currentPatient.history;
+                    patientData.currentNotes = obj.currentPatient.currentNotes;
 
                     % Save the patient data
                     try
                         save(obj.currentPatient.filePath, 'patientData');
-                        disp(['Data saved to: ', obj.currentPatient.filePath]);
                         success = true;
                     catch
                         disp('Error: Unable to save the patient data.');
@@ -75,27 +125,29 @@ classdef MainController < handle
             end
         end
 
-        % Add a new note to the current patient
-        function obj = addNoteToPatient(obj, noteText)
-            if isempty(obj.currentPatient)
-                error('No patient to add notes to');
-            end
-            obj.currentPatient = obj.currentPatient.addNote(noteText);
-            disp('Note added to patient history');
-        end
-
         function [name, surname, dob, prevHistory, currHistory] = openExistingPatientFile(obj, filePath)
             try
                 fileData = load(filePath);
                 patientData = fileData.patientData;
-                obj.currentPatient = PatientData(filePath, patientData.id, patientData.creationDate, false);
+                obj.currentPatient = PatientData(filePath, patientData.id, patientData.creationDate);
                 obj.currentPatient.name = patientData.name;
                 obj.currentPatient.surname = patientData.surname;
                 obj.currentPatient.dateOfBirth = patientData.dateOfBirth;
                 obj.currentPatient.history = patientData.history;
+                obj.currentPatient.currentNotes = patientData.currentNotes;
 
-                [prevHistory, currHistory] = obj.currentPatient.getSplitHistory();
-                obj.currentPatient = obj.currentPatient.addNotes('');
+                [prevHistory, currHistory, sub] = obj.currentPatient.getSplitHistory();
+
+                if sub
+                    obj.currentPatient.history = [obj.currentPatient.history, obj.currentPatient.currentNotes];
+                    obj.currentPatient.currentNotes.text = '';
+                end
+                
+                obj.saveCurrentPatient(obj.currentPatient.name, ...
+                                       obj.currentPatient.surname, ...
+                                       obj.currentPatient.dateOfBirth, ...
+                                        {''});
+
                 name = obj.currentPatient.name;
                 surname = obj.currentPatient.surname;
                 dob = obj.currentPatient.dateOfBirth;
@@ -137,6 +189,10 @@ classdef MainController < handle
         function onSelectTargetButtonPushed(obj, panelIndex)
             obj.currentScene = obj.currentScene.setSelectedTarget(panelIndex);
         end
-        
+
+        % Generate a unique random number
+        function randomValue = generateUniqueRandom(obj)
+            randomValue = randi([0, 99]);
+        end    
     end
 end

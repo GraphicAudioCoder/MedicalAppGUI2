@@ -21,8 +21,8 @@ classdef MainMenu < handle
             
             % Welcome label
             welcomeLabel = uilabel(mainWindow, ...
-                'Position', [figPosition(3)/4, figPosition(4)*0.83, figPosition(3)/2, 50], ...
-                'Text', ['Welcome to ', APP_NAME], ...
+                'Position', [figPosition(3)/4-30, figPosition(4)*0.83, figPosition(3)/2+30, 50], ...
+                'Text', [LanguageManager('get').WELCOME_TEXT, ' ', APP_NAME], ...
                 'FontSize', HEADER_FONT_SIZE, ...
                 'FontName', HEADER_FONT, ...
                 'FontColor', theme.HEADER_COLOR, ...
@@ -34,6 +34,17 @@ classdef MainMenu < handle
             buttonWidth = 250;
             startX = 55;
             lowerVerticalPosition = 400;
+
+            % Language dropdown
+            langDropdown = uidropdown(mainWindow, ...
+                'Position', [figPosition(3)-210, figPosition(4)-50, 110, 30], ...
+                'Items', {'English','Italiano'}, ...
+                'Value', 'English',...
+                'FontSize', HELP_BTN_FONT_SIZE, ...
+                'FontColor', theme.USER_LABEL_COLOR, ...
+                'BackgroundColor', theme.HELP_BTN_COLOR, ...
+                'ValueChangedFcn', @(dd,event)obj.onLanguageChanged(dd));
+            obj.components('languageDropdown') = langDropdown;
 
             % Theme Button
             if strcmp(theme.THEME, 'DARK')
@@ -59,7 +70,7 @@ classdef MainMenu < handle
                 'FontName', MODE_FONT, ...
                 'BackgroundColor', theme.USER_COLOR, ...
                 'FontColor', theme.FONT_MAIN_MENU_COLOR, ...
-                'Text', {'USER', 'MODE'}, ...
+                'Text', 'USER', ...
                 'ButtonPushedFcn', @(btn, event)obj.onUserModeButtonPushed(mainWindow));
             obj.components('leftButton') = leftButton;
 
@@ -71,7 +82,7 @@ classdef MainMenu < handle
                 'FontName', MODE_FONT, ...
                 'BackgroundColor', theme.DEVELOPER_COLOR, ...
                 'FontColor', theme.FONT_MAIN_MENU_COLOR, ...
-                'Text', {'DEVELOPER', 'MODE'});
+                'Text', 'DEVELOPER');
             obj.components('centerButton') = centerButton; % Store in components map
 
             % Block button
@@ -82,13 +93,14 @@ classdef MainMenu < handle
                 'FontName', MODE_FONT, ...
                 'BackgroundColor', theme.BLOCK_COLOR, ...
                 'FontColor', theme.FONT_MAIN_MENU_COLOR, ...
-                'Text', {'BLOCK', 'MODE'});
+                'Text', 'BLOCK');
             obj.components('rightButton') = rightButton;
         end
 
         % Left button callback
         function onUserModeButtonPushed(obj, mainWindow)
-            UserWindow(mainWindow, obj.controller);
+            selectedLanguage = obj.components('languageDropdown').Value;
+            UserWindow(mainWindow, obj.controller, selectedLanguage);
             obj.delete();
         end
         
@@ -117,6 +129,30 @@ classdef MainMenu < handle
             rightButton = obj.components('rightButton');
             rightButton.BackgroundColor = currentColors.BLOCK_COLOR;
             rightButton.FontColor = currentColors.FONT_MAIN_MENU_COLOR;
+
+            % Update dropdown colors
+            langDropdown = obj.components('languageDropdown');
+            langDropdown.BackgroundColor = currentColors.HELP_BTN_COLOR;
+            langDropdown.FontColor = currentColors.USER_LABEL_COLOR;
+        end
+
+        function onLanguageChanged(obj, dd)
+            currentLang = LanguageManager('setLanguage', dd.Value);
+            obj.updateLanguageUI(currentLang);
+        end
+
+        function updateLanguageUI(obj, lang)
+            NamesFonts;
+
+            leftButton = obj.components('leftButton');
+            leftButton.Text = lang.USER_BUTTON_TEXT;
+            centerButton = obj.components('centerButton');
+            centerButton.Text = lang.DEVELOPER_BUTTON_TEXT;
+            rightButton = obj.components('rightButton');
+            rightButton.Text = lang.BLOCK_BUTTON_TEXT;
+            
+            welcomeLabel = obj.components('welcomeLabel');
+            welcomeLabel.Text = [lang.WELCOME_TEXT, ' ', APP_NAME];
         end
 
         % Delete all created components

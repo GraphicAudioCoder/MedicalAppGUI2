@@ -11,7 +11,8 @@ classdef MainWindow < handle
     methods
         function obj = MainWindow(controller)
             obj.controller = controller;
-            % disp(['Status all interno di MainWindow: ', num2str(obj.controller.status)]);
+            % Set default language to English
+            LanguageManager('setLanguage', 'English');
             obj.createUI();
         end
         
@@ -19,7 +20,7 @@ classdef MainWindow < handle
         function createUI(obj)
             NamesFonts;
 
-            theme = ThemeManager('forceLight');
+            theme = ThemeManager('forceDark');
 
             screenSize = get(0, 'ScreenSize');            
             figWidth = 1080;

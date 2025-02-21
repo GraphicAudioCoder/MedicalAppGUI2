@@ -9,53 +9,30 @@ classdef PatientData
         dateOfBirth
         creationDate
         history
+        currentNotes
     end
     
     methods
-        % Costruttore
-        function obj = PatientData(fullPath, fileName, creationDate, newNote)
+        % Constructor
+        function obj = PatientData(fullPath, fileName, creationDate)
             obj.filePath = fullPath;
             obj.id = fileName;
             obj.creationDate = creationDate;
             obj.history = [];
-            if newNote
-                obj = obj.addNotes('');
-            end
         end
 
-        % Add a new note to the patient's history
-        function obj = addNotes(obj, noteText)
-            currentDate = datetime('now', 'Format', 'yyyy-MM-dd');  
-            currentDate = dateshift(currentDate, 'start', 'day');  
-
-            newNote.date = currentDate;
-            newNote.text = noteText;
-            obj.history = [obj.history, newNote];
-        end
-
-        % Update last note to the patient's history
+        % Update current note
         function obj = updateNotes(obj, noteText)
             currentDate = datetime('now', 'Format', 'yyyy-MM-dd');  
             currentDate = dateshift(currentDate, 'start', 'day');  
             
-            if ~isempty(obj.history)
-                obj.history(end).date = currentDate;
-                obj.history(end).text = noteText;
-            else
-                newNote.date = currentDate;
-                newNote.text = noteText;
-                obj.history = [obj.history, newNote];
-            end
+            obj.currentNotes.date = currentDate;
+            obj.currentNotes.text = noteText;
         end
 
         % Save method for preparing the data
         function patientData = save(obj)
-            lastText = obj.history(end).text; 
-            disp(['Tipo di text: ', class(lastText)]);
-            disp(['Dimensione di text: ', num2str(size(lastText))]);
-            disp(['Valore di text: ', cell2mat(lastText)]);
-
-            if isempty(cell2mat(lastText))
+            if isempty(strtrim(obj.history(end).text))
                 obj.history(end) = [];
             end
 
@@ -82,7 +59,7 @@ classdef PatientData
         end
 
         % Get today's note and previous notes
-        function [prevHistory, currHistory] = getSplitHistory(obj, numDashes)
+        function [prevHistory, currHistory, sub] = getSplitHistory(obj, numDashes)
             if nargin < 2
                 numDashes = 50;
             end
@@ -92,12 +69,28 @@ classdef PatientData
             
             for i = 1:length(obj.history)
                 noteDate = dateshift(obj.history(i).date, 'start', 'day');
-                noteText = obj.history(i).text{1};
+                noteText = strjoin(obj.history(i).text, '\n');
+
                 noteDateStr = string(noteDate, 'dd-MM-yyyy');
                 dashes = repmat('-', 1, numDashes);
 
                 prevHistory = sprintf('%s%s %s %s\n%s\n\n', prevHistory, dashes, noteDateStr, dashes, noteText);
             end
+
+            sub = false;
+
+            if ~isempty(strtrim(obj.currentNotes.text)) && ~all(cellfun('isempty', obj.currentNotes.text))
+                noteDateStr = string(obj.currentNotes.date, 'dd-MM-yyyy');
+                noteText = strjoin(obj.currentNotes.text, '\n');
+
+                sub = true;
+                
+                dashes = repmat('-', 1, numDashes);
+                prevHistory = sprintf('%s%s %s %s\n%s\n\n', prevHistory, dashes, noteDateStr, dashes, noteText);
+            end
+            
+            obj.currentNotes.text = '';
+
         end
     end
 end

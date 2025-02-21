@@ -16,17 +16,22 @@ AVVIO DA MATLAB
 3) Premere "Run" nell'IDE di MATLAB.
 
 AVVIO DA VSCODE
-
-1) Avviare il comando "pathtool"
-2) Aggiungere la cartella "MedicalAppGUI" e le sue sottocartelle al path di MATLAB.
-3) Aprire "Runner.m".
-4) Premere "Run" su VSCode.
+1) Aprire la cartella "MedicalAppGUI" in VSCode.
+2) Avviare il comando "pathtool" dal terminale (nella cartella di progetto).
+3) Aggiungere la cartella "MedicalAppGUI" e le sue sottocartelle al path di MATLAB.
+4) Aprire "Runner.m".
+5) Premere "Run" su VSCode.
 
 STRUTTURA DEL PROGETTO
 
 - Doc.m: File corrente, contenente la documentazione.
 - Runner.m: File di avvio principale dell'applicazione.
 - view: Contiene le classi per la vista dell'applicazione.
+  - MainWindow.m: Classe principale per la finestra dell'applicazione.
+  - MainMenu.m: Classe per il menu principale.
+  - user: Contiene le classi per la vista utente.
+    - ListenerPanel.m: Pannello per la selezione dei listener.
+    - EnvironmentPanel.m: Pannello per la selezione dell'ambiente.
 - model: Contiene le classi del modello, che gestiscono i dati dell'applicazione.
 - controller: Contiene le classi del controller, che gestiscono la logica dell'applicazione.
 - constants: Contiene le costanti di progetto.
@@ -35,5 +40,9 @@ STRUTTURA DEL PROGETTO
 - resources: Contiene i file necessari per avviare qualunque progetto MATLAB.
 - patients: Contiene i file .mat dei pazienti, che memorizzano i dati del paziente.
 - scenes: Contiene le scene disponibili nell'applicazione.
+- languages: Contiene i file per la gestione delle lingue dell'applicazione.
+  - LanguageManager.m: Gestisce la lingua corrente dell'applicazione.
+  - EnglishLang.m: File di lingua inglese.
+  - ItalianLang.m: File di lingua italiana.
 
 %}

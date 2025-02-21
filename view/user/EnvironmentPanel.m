@@ -1,3 +1,5 @@
+% view/user/EnvironmentPanel.m
+
 classdef EnvironmentPanel < handle
     properties
         mainWindow
@@ -44,7 +46,17 @@ classdef EnvironmentPanel < handle
                 panel.Layout.Column = 1;
 
                 labelText = sceneNames{i};
-                imgPath = fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileNames{i}, '/', fileNames{i}, '_plan.png']);
+                
+                % Determine the image path (either PNG or JPG)
+                pngPath = fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileNames{i}, '/', fileNames{i}, '_plan.png']);
+                jpgPath = fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileNames{i}, '/', fileNames{i}, '_plan.jpg']);
+                if exist(pngPath, 'file')
+                    imgPath = pngPath;
+                elseif exist(jpgPath, 'file')
+                    imgPath = jpgPath;
+                else
+                    imgPath = ''; % Default to empty if no image found
+                end
 
                 % Label for the left side of the panel
                 labelName = sprintf('label%d', i);
@@ -68,6 +80,10 @@ classdef EnvironmentPanel < handle
                 'ButtonPushedFcn', @(btn, event) obj.onImageButtonPushed(btn, i, fileNames{i}));
                 obj.components(imgButtonName) = imgButton;  
 
+                % Load the scene .mat file to get acousticalSpecs
+                sceneData = load(fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileNames{i}, '/', fileNames{i}, '.mat']));
+                acousticalSpecs = sceneData.acousticalSpecs;
+
                 % Text area and Label for the right side of the panel
                 textAreaLabel = uilabel(panel, ...
                     'Text', 'Acoustical specs:', ...
@@ -79,7 +95,7 @@ classdef EnvironmentPanel < handle
                     'Position', [500, 205, 200, 30]);
 
                 textArea = uitextarea(panel, ...
-                    'Value', {'T30'}, ...
+                    'Value', acousticalSpecs, ...
                     'FontSize', SPECS_FONT_SIZE, ...
                     'FontName', SPECS_FONT, ...
                     'FontColor', theme.USER_LABEL_COLOR, ...
@@ -120,12 +136,12 @@ classdef EnvironmentPanel < handle
 
         % Listener callback for the "Select" buttons
         function onSelectSceneButtonPushed(obj, panelIndex)
-
             selectedLabel = obj.components('selectedLabel');
             [~, sceneNames, ~] = obj.controller.readAllScenes();
+            currentLang = LanguageManager('get');
 
             if panelIndex <= numel(sceneNames)
-                selectedLabel.Text = ['Selected environment: ', sceneNames{panelIndex}];
+                selectedLabel.Text = [currentLang.SELECTED_ENVIRONMENT_LABEL, sceneNames{panelIndex}];
             end    
             
             if ~isempty(obj.controller.currentScene)
@@ -140,18 +156,30 @@ classdef EnvironmentPanel < handle
             % Reset the selected listener label
             listenerSelectedLabel = obj.controller.listenerPanel.components('selectedLabel');
             if ~strcmp(oldScene, obj.controller.currentScene.sceneName)
-                listenerSelectedLabel.Text = 'Selected listener: ';
+                listenerSelectedLabel.Text = currentLang.SELECTED_LISTENER_LABEL;
                 obj.controller.targetSpeakerPanel.clearPanels();
             end
         end
 
         % Callback for the image button press
         function onImageButtonPushed(obj, btn, imgIndex, fileName)
-            imgPaths = {
-                fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_plan.png']), ...
-                fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_photo.png']), ...
-                fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_3d.png'])
-            };
+            % Determine the file extension of the current image
+            [~, ~, ext] = fileparts(btn.Icon);
+            
+            % Set the image paths based on the current extension
+            if strcmp(ext, '.png')
+                imgPaths = {
+                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_plan.png']), ...
+                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_photo.png']), ...
+                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_3d.png'])
+                };
+            else
+                imgPaths = {
+                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_plan.jpg']), ...
+                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_photo.jpg']), ...
+                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_3d.jpg'])
+                };
+            end
             
             if isempty(imgPaths)
                 disp('Error: imgPaths is empty.');
@@ -238,6 +266,28 @@ classdef EnvironmentPanel < handle
 
         function onRightClick(obj, src, event)
             % mousePos = get(src, 'Currentpoint');
+        end
+
+        function updateLanguageUI(obj, lang)
+            % Update the select buttons text
+            keys = obj.components.keys;
+            for i = 1:length(keys)
+                key = keys{i};
+                if startsWith(key, 'selectButton')
+                    btn = obj.components(key);
+                    btn.Text = lang.SELECT_BUTTON_TEXT;
+                elseif startsWith(key, 'textAreaLabel')
+                    lbl = obj.components(key);
+                    lbl.Text = lang.ACOUSTICAL_SPECS_LABEL;
+                end
+            end
+            % Update selected environment label
+            selectedLabel = obj.components('selectedLabel');
+            if isprop(obj.controller, 'currentScene') && ~isempty(obj.controller.currentScene)
+                selectedLabel.Text = [lang.SELECTED_ENVIRONMENT_LABEL, obj.controller.currentScene.sceneName];
+            else
+                selectedLabel.Text = lang.SELECTED_ENVIRONMENT_LABEL;
+            end
         end
     end
 end

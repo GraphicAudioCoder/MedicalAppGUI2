@@ -55,7 +55,7 @@ classdef PatientPanel < handle
 
             % Name Label and Text Field
             obj.components('nameLabel') = uilabel(mainWindow, ...
-                'Position', [textFieldOffsetX, fieldOffsetY, 100, 30], ...
+                'Position', [textFieldOffsetX - 20, fieldOffsetY, 150, 30], ...
                 'Text', 'Name:', ...
                 'FontSize', NEXT_BTN_FONT_SIZE, ...
                 'FontName', MAIN_FONT, ...
@@ -71,7 +71,7 @@ classdef PatientPanel < handle
 
             % Surname Label and Text Field
             obj.components('surnameLabel') = uilabel(mainWindow, ...
-                'Position', [textFieldOffsetX, fieldOffsetY - 40, 100, 30], ...
+                'Position', [textFieldOffsetX - 20, fieldOffsetY - 40, 150, 30], ...
                 'Text', 'Surname:', ...
                 'FontSize', NEXT_BTN_FONT_SIZE, ...
                 'FontName', MAIN_FONT, ...
@@ -87,7 +87,7 @@ classdef PatientPanel < handle
 
             % Date of Birth Label and Date Picker
             obj.components('dobLabel') = uilabel(mainWindow, ...
-                'Position', [textFieldOffsetX, fieldOffsetY - 80, 100, 30], ...
+                'Position', [textFieldOffsetX - 20, fieldOffsetY - 80, 150, 30], ...
                 'Text', 'Birthday:', ...
                 'FontSize', NEXT_BTN_FONT_SIZE, ...
                 'FontName', MAIN_FONT, ...
@@ -167,17 +167,21 @@ classdef PatientPanel < handle
             nameField = obj.components('nameField');
             surnameField = obj.components('surnameField');
             dobField = obj.components('dobField');
+            notes = obj.components('newNotesArea');
         
             nameValue = strtrim(nameField.Value);
             surnameValue = strtrim(surnameField.Value);
+            notesValue = notes.Value;
+            
+            lang = LanguageManager('get');
             
             if isempty(nameValue) || isempty(surnameValue)
                 if isempty(nameValue) && isempty(surnameValue)
-                    msgText = 'Name and surname are missing';
+                    msgText = lang.MISSING_NAME_SURNAME;
                 elseif isempty(nameValue)
-                    msgText = 'Name is missing';
+                    msgText = lang.MISSING_NAME;
                 else
-                    msgText = 'Surname is missing';
+                    msgText = lang.MISSING_SURNAME;
                 end
                 
                 msgColor = [0.9, 0, 0];
@@ -200,29 +204,9 @@ classdef PatientPanel < handle
                 return;
             end
 
-            dobValue = datestr(dobField.Value, 'yyyyMMdd');
+            dobValue = datestr(dobField.Value, 'yyyymmdd');
         
-            currFileName = sprintf('%s_%s_%s_%d.mat', ...
-                nameValue, ...
-                surnameValue, ...
-                dobValue, ...
-                obj.generateUniqueRandom());
-        
-            currFileName = strrep(currFileName, ' ', '');
-        
-            defaultPath = fullfile(pwd, 'patients');
-                       
-            if ~isfolder(defaultPath)
-                defaultPath = pwd;
-            end
-            
-            [fileName, pathName] = uiputfile({'*.mat', 'MATLAB Files (*.mat)'}, ...
-                'New Patient', fullfile(defaultPath, currFileName));
-                           
-            if fileName ~= 0
-                fullPath = fullfile(pathName, fileName);
-                obj.controller.createNewPatientFile(fullPath);
-            end
+            obj.controller.createNewPatient(nameValue, surnameValue, dobValue, notesValue);
         end
 
 
@@ -247,10 +231,10 @@ classdef PatientPanel < handle
                 dobField = obj.components('dobField');
                 notesField = obj.components('newNotesArea');
                 prevNotes = obj.components('prevHistoryArea');
+                
                 nameField.Value = name;
-
                 surnameField.Value = surname;
-                dobField.Value = dob;
+                dobField.Value = datetime(dob, 'InputFormat', 'yyyyMMdd');
                 notesField.Value = currHistory;
                 prevNotes.Value = prevHistory;
             end
@@ -267,11 +251,13 @@ classdef PatientPanel < handle
 
             success = obj.controller.saveCurrentPatient(name, surname, dob, notes);
     
+            lang = LanguageManager('get');
+            
             if success
-                msgText = 'Data saved successfully!';
+                msgText = lang.DATA_SAVED_SUCCESSFULLY;
                 msgColor = [0, 0.5, 0];
             else
-                msgText = 'Non-existent patient';
+                msgText = lang.NONEXISTENT_PATIENT;
                 msgColor = [0.9, 0, 0];
             end
 
@@ -371,6 +357,25 @@ classdef PatientPanel < handle
         end
 
         function onRightClick(obj, src, event)
+        end
+
+        function updateLanguageUI(obj, lang)
+            nameLabel = obj.components('nameLabel');
+            nameLabel.Text = lang.NAME_LABEL;
+            surnameLabel = obj.components('surnameLabel');
+            surnameLabel.Text = lang.SURNAME_LABEL;
+            dobLabel = obj.components('dobLabel');
+            dobLabel.Text = lang.BIRTHDAY_LABEL;
+            prevHistoryLabel = obj.components('prevHistoryLabel');
+            prevHistoryLabel.Text = lang.PREVIOUS_CLINICAL_HISTORY_LABEL;
+            newNotesLabel = obj.components('newNotesLabel');
+            newNotesLabel.Text = lang.NOTES_LABEL;
+            saveBtn = obj.components('saveBtn');
+            saveBtn.Text = lang.SAVE_PATIENT_AND_DATA_LABEL;
+            newBtn = obj.components('newBtn');
+            newBtn.Text = lang.NEW_LABEL;
+            openBtn = obj.components('openBtn');
+            openBtn.Text = lang.OPEN_LABEL;
         end
     end
 end
