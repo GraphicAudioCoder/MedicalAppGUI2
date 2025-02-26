@@ -48,8 +48,8 @@ classdef EnvironmentPanel < handle
                 labelText = sceneNames{i};
                 
                 % Determine the image path (either PNG or JPG)
-                pngPath = fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileNames{i}, '/', fileNames{i}, '_plan.png']);
-                jpgPath = fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileNames{i}, '/', fileNames{i}, '_plan.jpg']);
+                pngPath = fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileNames{i}, filesep, fileNames{i}, '_plan.png']);
+                jpgPath = fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileNames{i}, filesep, fileNames{i}, '_plan.jpg']);
                 if exist(pngPath, 'file')
                     imgPath = pngPath;
                 elseif exist(jpgPath, 'file')
@@ -81,7 +81,7 @@ classdef EnvironmentPanel < handle
                 obj.components(imgButtonName) = imgButton;  
 
                 % Load the scene .mat file to get acousticalSpecs
-                sceneData = load(fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileNames{i}, '/', fileNames{i}, '.mat']));
+                sceneData = load(fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileNames{i}, filesep, fileNames{i}, '.mat']));
                 acousticalSpecs = sceneData.acousticalSpecs;
 
                 % Text area and Label for the right side of the panel
@@ -169,15 +169,15 @@ classdef EnvironmentPanel < handle
             % Set the image paths based on the current extension
             if strcmp(ext, '.png')
                 imgPaths = {
-                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_plan.png']), ...
-                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_photo.png']), ...
-                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_3d.png'])
+                    fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileName, filesep, fileName, '_plan.png']), ...
+                    fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileName, filesep, fileName, '_photo.png']), ...
+                    fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileName, filesep, fileName, '_3d.png'])
                 };
             else
                 imgPaths = {
-                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_plan.jpg']), ...
-                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_photo.jpg']), ...
-                    fullfile(fileparts(mfilename('fullpath')), ['../../scenes/', fileName, '/', fileName, '_3d.jpg'])
+                    fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileName, filesep, fileName, '_plan.jpg']), ...
+                    fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileName, filesep, fileName, '_photo.jpg']), ...
+                    fullfile(fileparts(mfilename('fullpath')), ['..', filesep, '..', filesep, 'scenes', filesep, fileName, filesep, fileName, '_3d.jpg'])
                 };
             end
             

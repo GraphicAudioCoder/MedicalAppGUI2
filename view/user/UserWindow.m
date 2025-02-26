@@ -92,7 +92,7 @@ classdef UserWindow < handle
             obj.components('themeButton') = themeButton;
 
             % Help Button
-            helpIconPath = fullfile(fileparts(mfilename('fullpath')), '../../assets/icons/help.png');
+            helpIconPath = fullfile(fileparts(mfilename('fullpath')), '..', filesep,'..', filesep,'assets', filesep,'icons', filesep,'help.png');
             helpButton = uibutton(mainWindow, ...
                 'Position', [figPosition(3)-50, figPosition(4)-50, 30, 30], ...
                 'Text', '', ...
@@ -637,9 +637,9 @@ classdef UserWindow < handle
             
             % Update the theme icon
             if strcmp(theme.THEME, 'DARK')
-                themeIconPath = fullfile(fileparts(mfilename('fullpath')), '../../assets/icons/sun.png');
+                themeIconPath = fullfile(fileparts(mfilename('fullpath')), '..', filesep, '..', filesep, 'assets', filesep,'icons', filesep,'sun.png');
             else
-                themeIconPath = fullfile(fileparts(mfilename('fullpath')), '../../assets/icons/moon.png');
+                themeIconPath = fullfile(fileparts(mfilename('fullpath')), '..', filesep, '..', filesep, 'assets', filesep,'icons', filesep, 'moon.png');
             end
             btn.Icon = themeIconPath;
             

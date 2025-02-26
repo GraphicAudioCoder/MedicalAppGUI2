@@ -8,6 +8,10 @@ classdef ListenerPanel < handle
         scrollableArea
     end
     
+    properties (Access = private)
+        isCallbackSet = false;
+    end
+    
     methods
         function obj = ListenerPanel(mainWindow, controller)
             NamesFonts;
@@ -64,14 +68,15 @@ classdef ListenerPanel < handle
                 'FontWeight', 'bold');
             obj.components('elevationLabel') = elevationLabel;
 
-            % Elevation NumberBox
-            elevationBox = uieditfield(obj.mainWindow, 'numeric', ...
+            % Elevation Dropdown
+            elevationDropdown = uidropdown(obj.mainWindow, ...
                 'Position', [USER_PANEL_X_START + 700, 500, 50, 30], ...
                 'FontSize', SELECT_BTN_FONT_SIZE, ...
                 'FontName', MAIN_FONT, ...
                 'FontColor', theme.USER_LABEL_COLOR, ...
-                'BackgroundColor', theme.USER_GUI_ELEM_COLOR_ONE);
-            obj.components('elevationBox') = elevationBox;
+                'BackgroundColor', theme.USER_GUI_ELEM_COLOR_ONE, ...
+                'Items', {'0', '10', '20', '30', '40', '50', '60', '70', '80', '90'});
+            obj.components('elevationDropdown') = elevationDropdown;
 
             % Azimuth Label
             azimuthLabel = uilabel(obj.mainWindow, ...
@@ -84,14 +89,15 @@ classdef ListenerPanel < handle
                 'FontWeight', 'bold');
             obj.components('azimuthLabel') = azimuthLabel;
 
-            % Azimuth NumberBox
-            azimuthBox = uieditfield(obj.mainWindow, 'numeric', ...
+            % Azimuth Dropdown
+            azimuthDropdown = uidropdown(obj.mainWindow, ...
                 'Position', [USER_PANEL_X_START + 700, 450, 50, 30], ...
                 'FontSize', SELECT_BTN_FONT_SIZE, ...
                 'FontName', MAIN_FONT, ...
                 'FontColor', theme.USER_LABEL_COLOR, ...
-                'BackgroundColor', theme.USER_GUI_ELEM_COLOR_ONE);
-            obj.components('azimuthBox') = azimuthBox;
+                'BackgroundColor', theme.USER_GUI_ELEM_COLOR_ONE, ...
+                'Items', {'0', '30', '60', '90', '120', '150', '180', '210', '240', '270', '300', '330'});
+            obj.components('azimuthDropdown') = azimuthDropdown;
 
             % Update language for UI components
             % obj.updateLanguageUI(currentLang);
@@ -229,26 +235,36 @@ classdef ListenerPanel < handle
             % end
 
             % Add patient image
-            patientPath = fullfile(currentScene.scenePath, 'patients');
+            patientPath = fullfile(currentScene.scenePath, 'listeners');
             patientFiles = dir(fullfile(patientPath, '*.png'));
             if isempty(patientFiles)
                 patientFiles = dir(fullfile(patientPath, '*.jpg'));
             end
 
             if ~isempty(patientFiles)
-                patientImgPath = fullfile(patientPath, patientFiles(1).name);
-                patientImg = uiimage(obj.mainWindow, ...
-                    'ImageSource', patientImgPath, ...
-                    'Position', [USER_PANEL_X_START + 80, 120, 500, 500]);
-                obj.components('patientImg') = patientImg;
+                % Find the file that ends with 'listeners'
+                listenerFile = '';
+                for i = 1:length(patientFiles)
+                    if contains(patientFiles(i).name, 'listeners')
+                        listenerFile = patientFiles(i).name;
+                        break;
+                    end
+                end
 
-                % Set mouse motion callback without overwriting existing one
-                originalMouseMotionCallback = patientImg.Parent.WindowButtonMotionFcn;
-                patientImg.Parent.WindowButtonMotionFcn = @(src, event) obj.combinedMouseMotionCallback(originalMouseMotionCallback, patientImg, src, event);
+                if ~isempty(listenerFile)
+                    patientImgPath = fullfile(patientPath, listenerFile);
+                    patientImg = uiimage(obj.mainWindow, ...
+                        'ImageSource', patientImgPath, ...
+                        'Position', [USER_PANEL_X_START + 10, 80, 560, 560]);
+                    obj.components('patientImg') = patientImg;
+                end
+            end
 
+            if ~obj.isCallbackSet
                 % Set right-click callback without overwriting existing one
                 originalRightClickCallback = patientImg.Parent.WindowButtonDownFcn;
                 patientImg.Parent.WindowButtonDownFcn = @(src, event) obj.combinedRightClickCallback(originalRightClickCallback, patientImg, src, event);
+                obj.isCallbackSet = true;
             end
 
             obj.setVisibility(false);

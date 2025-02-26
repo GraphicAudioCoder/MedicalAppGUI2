@@ -34,7 +34,7 @@ MISSING_NAME = 'Nome mancante';
 MISSING_SURNAME = 'Cognome mancante';
 DATA_SAVED_SUCCESSFULLY = 'Dati salvati con successo!';
 NONEXISTENT_PATIENT = 'Paziente inesistente';
-SELECTED_LISTENER_LABEL = 'Uditore selezionato: ';
+SELECTED_LISTENER_LABEL = 'Ascoltatore selezionato: ';
 
 LISTENER_AZIMUTH_LABEL = 'Azimuth:';
 LISTENER_ELEVATION_LABEL = 'Elevazione:';
