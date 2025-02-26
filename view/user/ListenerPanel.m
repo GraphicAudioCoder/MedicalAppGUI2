@@ -6,6 +6,7 @@ classdef ListenerPanel < handle
         components
         controller
         scrollableArea
+        patientFiles
     end
     
     properties (Access = private)
@@ -75,6 +76,7 @@ classdef ListenerPanel < handle
                 'FontName', MAIN_FONT, ...
                 'FontColor', theme.USER_LABEL_COLOR, ...
                 'BackgroundColor', theme.USER_GUI_ELEM_COLOR_ONE, ...
+                'enable', 'off', ...
                 'Items', {'0', '10', '20', '30', '40', '50', '60', '70', '80', '90'});
             obj.components('elevationDropdown') = elevationDropdown;
 
@@ -96,6 +98,7 @@ classdef ListenerPanel < handle
                 'FontName', MAIN_FONT, ...
                 'FontColor', theme.USER_LABEL_COLOR, ...
                 'BackgroundColor', theme.USER_GUI_ELEM_COLOR_ONE, ...
+                'enable', 'off', ...
                 'Items', {'0', '30', '60', '90', '120', '150', '180', '210', '240', '270', '300', '330'});
             obj.components('azimuthDropdown') = azimuthDropdown;
 
@@ -236,17 +239,17 @@ classdef ListenerPanel < handle
 
             % Add patient image
             patientPath = fullfile(currentScene.scenePath, 'listeners');
-            patientFiles = dir(fullfile(patientPath, '*.png'));
-            if isempty(patientFiles)
-                patientFiles = dir(fullfile(patientPath, '*.jpg'));
+            obj.patientFiles = dir(fullfile(patientPath, '*.png'));
+            if isempty(obj.patientFiles)
+                obj.patientFiles = dir(fullfile(patientPath, '*.jpg'));
             end
 
-            if ~isempty(patientFiles)
+            if ~isempty(obj.patientFiles)
                 % Find the file that ends with 'listeners'
                 listenerFile = '';
-                for i = 1:length(patientFiles)
-                    if contains(patientFiles(i).name, 'listeners')
-                        listenerFile = patientFiles(i).name;
+                for i = 1:length(obj.patientFiles)
+                    if contains(obj.patientFiles(i).name, 'listeners')
+                        listenerFile = obj.patientFiles(i).name;
                         break;
                     end
                 end
@@ -262,53 +265,58 @@ classdef ListenerPanel < handle
 
             if ~obj.isCallbackSet
                 % Set right-click callback without overwriting existing one
-                originalRightClickCallback = patientImg.Parent.WindowButtonDownFcn;
-                patientImg.Parent.WindowButtonDownFcn = @(src, event) obj.combinedRightClickCallback(originalRightClickCallback, patientImg, src, event);
+                originalRightClickCallback = obj.mainWindow.WindowButtonDownFcn;
+                obj.mainWindow.WindowButtonDownFcn = @(src, event) obj.combinedRightClickCallback(originalRightClickCallback, src, event);
                 obj.isCallbackSet = true;
             end
 
             obj.setVisibility(false);
         end
 
-        % Combined mouse motion callback
-        function combinedMouseMotionCallback(obj, originalCallback, patientImg, src, event)
-            if ~isempty(originalCallback)
-                originalCallback(src, event);
-            end
-            % selectedLabel = obj.components('selectedLabel');
-            % if strcmp(selectedLabel.Visible, 'on')
-            %     obj.printMousePosition(patientImg);
-            % end
-        end
-
         % Combined right-click callback
-        function combinedRightClickCallback(obj, originalCallback, patientImg, src, event)
+        function combinedRightClickCallback(obj, originalCallback, src, event)
             if ~isempty(originalCallback)
                 originalCallback(src, event);
             end
             selectedLabel = obj.components('selectedLabel');
             if strcmp(selectedLabel.Visible, 'on')
-                obj.printClickPosition(patientImg);
-            end
-        end
-
-        % Print mouse position relative to the patient image
-        function printMousePosition(obj, patientImg)
-            mousePos = patientImg.Parent.CurrentPoint;
-            imgPos = patientImg.Position;
-            relativePos = [mousePos(1) - imgPos(1), mousePos(2) - imgPos(2)];
-            if relativePos(1) > 0 && relativePos(2) > 0 && relativePos(1) < 500 && relativePos(2) < 500
-                disp(['Mouse Position relative to image: ', num2str(relativePos)]);
+                obj.printClickPosition();
             end
         end
 
         % Print click position and "Click" relative to the patient image
-        function printClickPosition(obj, patientImg)
+        function printClickPosition(obj)
+            patientImg = obj.components('patientImg');
             mousePos = patientImg.Parent.CurrentPoint;
             imgPos = patientImg.Position;
             relativePos = [mousePos(1) - imgPos(1), mousePos(2) - imgPos(2)];
+            deltaFromListener = 10; % Define the radius around the listener positions
+
             if relativePos(1) > 0 && relativePos(2) > 0 && relativePos(1) < 500 && relativePos(2) < 500
-                disp(['Mouse Position relative to image: ', num2str(relativePos)]);
+                listenerPositions = obj.controller.currentScene.listenerPositions;
+                for i = 1:size(listenerPositions, 1)
+                    listenerPos = listenerPositions(i, :);
+                    distance = sqrt((relativePos(1) - listenerPos(1))^2 + (relativePos(2) - listenerPos(2))^2);
+                    if distance <= deltaFromListener
+                        % disp(['Mouse Position relative to image: ', num2str(relativePos)]);
+                        
+                        % Find the file that ends with _i
+                        listenerFile = '';
+                        for j = 1:length(obj.patientFiles)
+                            if contains(obj.patientFiles(j).name, ['_', num2str(i)])
+                                listenerFile = obj.patientFiles(j).name;
+                                break;
+                            end
+                        end
+
+                        if ~isempty(listenerFile)
+                            patientImgPath = fullfile(obj.controller.currentScene.scenePath, 'listeners', listenerFile);
+                            patientImg.ImageSource = patientImgPath;
+                        end
+                        
+                        return;
+                    end
+                end
             end
         end
 

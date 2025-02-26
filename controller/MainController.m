@@ -179,6 +179,8 @@ classdef MainController < handle
 
             if panelIndex <= numel(sceneNames)
                 obj.currentScene = SceneData(fileNames{panelIndex}, sceneNames{panelIndex});
+                sceneData = load(fullfile(obj.currentScene.scenePath, [fileNames{panelIndex}, '.mat']));
+                obj.currentScene.listenerPositions = sceneData.listenerPositions;
             end
         end
 
