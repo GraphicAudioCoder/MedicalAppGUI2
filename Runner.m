@@ -1,4 +1,3 @@
-%% 
 % Runner.m
 
 clc;
