@@ -184,8 +184,12 @@ classdef MainController < handle
             end
         end
 
-        function onSelectListenerButtonPushed(obj, panelIndex)
-            obj.currentScene = obj.currentScene.setListenerNum(panelIndex);
+        function onSelectListener(obj, panelIndex)
+            obj.currentScene = obj.currentScene.setSelectedListener(panelIndex);
+        end
+
+        function listener = getListener(obj)
+            listener = obj.currentScene.selectedListener;
         end
 
         function onSelectTargetButtonPushed(obj, panelIndex)
@@ -195,6 +199,25 @@ classdef MainController < handle
         % Generate a unique random number
         function randomValue = generateUniqueRandom(obj)
             randomValue = randi([0, 99]);
-        end    
+        end   
+        
+        function azimuths = getListenerAzimuths(obj, listenerIndex)
+            azimuths = obj.currentScene.listenerAzimuths(listenerIndex, :);
+            obj.currentScene.selectedAzimuth = azimuths(1);
+        end
+        
+        function elevations = getListenerElevations(obj, listenerIndex)
+            elevations = obj.currentScene.listenerElevations(listenerIndex, :);
+            obj.currentScene.selectedElevation = elevations(1);
+        end
+
+        function setListenerAzimuth(obj, azimuth)
+            obj.currentScene.selectedAzimuth = azimuth;
+        end
+
+        function setListenerElevation(obj, elevation)
+            obj.currentScene.selectedElevation = elevation;
+        end
+        
     end
 end

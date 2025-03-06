@@ -154,14 +154,16 @@ classdef EnvironmentPanel < handle
             end
             
             obj.controller.onSelectSceneButtonPushed(panelIndex);
+            obj.controller.onSelectListener(0);
             obj.controller.listenerPanel.updateListeners(obj.controller.currentScene);
-            
+            obj.controller.targetSpeakerPanel.updateTargetSpeaker(obj.controller.currentScene);
+
             % Reset the selected listener label
-            listenerSelectedLabel = obj.controller.listenerPanel.components('selectedLabel');
-            if ~strcmp(oldScene, obj.controller.currentScene.sceneName)
-                listenerSelectedLabel.Text = currentLang.SELECTED_LISTENER_LABEL;
-                obj.controller.targetSpeakerPanel.clearPanels();
-            end
+            % listenerSelectedLabel = obj.controller.listenerPanel.components('selectedLabel');
+            % if ~strcmp(oldScene, obj.controller.currentScene.sceneName)
+            %     listenerSelectedLabel.Text = currentLang.SELECTED_LISTENER_LABEL;
+            %     obj.controller.targetSpeakerPanel.clearPanels();
+            % end
         end
 
         % Callback for the image button press

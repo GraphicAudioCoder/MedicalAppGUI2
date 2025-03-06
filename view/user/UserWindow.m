@@ -539,10 +539,11 @@ classdef UserWindow < handle
             end
 
             % Check if the listener is selected
-            selectedListenerLabel = obj.controller.listenerPanel.components('selectedLabel');
-            if obj.tabPosition == 3 && isempty(strtrim(strrep(selectedListenerLabel.Text, lang.SELECTED_LISTENER_LABEL, '')))
-                return; % Do not proceed if the listener is not selected
-            end
+            % selectedListenerLabel = obj.controller.listenerPanel.components('selectedLabel');
+            % if obj.tabPosition == 3 && isempty(strtrim(strrep(selectedListenerLabel.Text, lang.SELECTED_LISTENER_LABEL, '')))
+            %     disp('Listener not selected');
+            %     return; % Do not proceed if the listener is not selected
+            % end
 
             % % Check if the target speaker is selected
             % selectedTargetLabel = obj.controller.targetSpeakerPanel.components('selectedLabel');
@@ -550,6 +551,7 @@ classdef UserWindow < handle
             %     return; % Do not proceed if the target speaker is not selected
             % end
 
+            % Environment Tab
             if obj.tabPosition == 1
                 patientTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
 
@@ -561,6 +563,7 @@ classdef UserWindow < handle
                 obj.hideTabPanels();
                 obj.environmentPanel.setVisibility(true);
                 environmentTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
+            % Listener Tab
             elseif obj.tabPosition == 2
                 patientTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 environmentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
@@ -573,6 +576,7 @@ classdef UserWindow < handle
                 obj.hideTabPanels();
                 obj.listenerPanel.setVisibility(true);
                 listenerTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
+            % Target Speaker Tab
             elseif obj.tabPosition == 3
                 patientTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 environmentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
@@ -586,6 +590,7 @@ classdef UserWindow < handle
                 obj.hideTabPanels();
                 obj.targetSpeakerPanel.setVisibility(true);
                 targetSpeakerTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
+            % Masking Noise Tab
             elseif obj.tabPosition == 4
                 patientTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 environmentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
@@ -600,6 +605,7 @@ classdef UserWindow < handle
                 obj.hideTabPanels();
                 obj.maskingNoisePanel.setVisibility(true);
                 maskingNoiseTab.BackgroundColor = theme.USER_CURRENT_TABS_COLOR;
+            % Test Settings Tab
             elseif obj.tabPosition == 5
                 patientTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;
                 environmentTab.BackgroundColor = theme.USER_COMPLETED_TABS_COLOR;

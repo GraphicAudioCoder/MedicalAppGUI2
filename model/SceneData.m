@@ -8,7 +8,13 @@ classdef SceneData
         listenerNum
         selectedListener
         selectedTarget
+        selectedAzimuth
+        selectedElevation
         listenerPositions
+        listenerAzimuths
+        listenerElevations
+        targetsForListeners
+        targets
     end
     
     methods
@@ -18,11 +24,10 @@ classdef SceneData
             obj.sceneName = sceneName;
             obj.scenePath = fullfile(fileparts(mfilename('fullpath')), '../scenes', sceneFileName);
             sceneData = load(fullfile(obj.scenePath, [sceneFileName, '.mat']));
-            if isfield(sceneData, 'listenerPositions')
-                obj.listenerPositions = sceneData.listenerPositions;
-            else
-                obj.listenerPositions = [];
-            end
+            obj.listenerAzimuths = sceneData.listenerAzimuths;
+            obj.listenerElevations = sceneData.listenerElevations;
+            obj.targetsForListeners = sceneData.targetsForListeners;
+            obj.targets = sceneData.targets;
         end
 
         function obj = setListenerNum(obj, listenerNum)
