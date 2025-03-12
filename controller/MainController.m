@@ -188,6 +188,10 @@ classdef MainController < handle
             obj.currentScene = obj.currentScene.setSelectedListener(panelIndex);
         end
 
+        function onSelectTargetSpeaker(obj, panelIndex)
+            obj.currentScene = obj.currentScene.setSelectedTarget(panelIndex);
+        end
+
         function listener = getListener(obj)
             listener = obj.currentScene.selectedListener;
         end

@@ -38,3 +38,6 @@ SELECTED_LISTENER_LABEL = 'Selected listener: ';
 
 LISTENER_AZIMUTH_LABEL = 'Azimuth:';
 LISTENER_ELEVATION_LABEL = 'Elevation:';
+
+TARGET_SPECS_LABEL = 'Target specs:';
+TARGET_ORIENTATION_LABEL = 'Orientation:';

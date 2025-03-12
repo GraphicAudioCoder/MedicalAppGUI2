@@ -799,6 +799,7 @@ classdef UserWindow < handle
             obj.patientPanel.updateLanguageUI(lang);
             obj.environmentPanel.updateLanguageUI(lang);
             obj.listenerPanel.updateLanguageUI(lang);
+            obj.targetSpeakerPanel.updateLanguageUI(lang);
         end
     end
 end

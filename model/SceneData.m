@@ -14,7 +14,9 @@ classdef SceneData
         listenerAzimuths
         listenerElevations
         targetsForListeners
+        targetsForListenersSpecs
         targets
+        targetOrientation
     end
     
     methods
@@ -28,6 +30,8 @@ classdef SceneData
             obj.listenerElevations = sceneData.listenerElevations;
             obj.targetsForListeners = sceneData.targetsForListeners;
             obj.targets = sceneData.targets;
+            obj.targetsForListenersSpecs = sceneData.targetsForListenersSpecs;
+            obj.targetOrientation = sceneData.targetOrientation;
         end
 
         function obj = setListenerNum(obj, listenerNum)
